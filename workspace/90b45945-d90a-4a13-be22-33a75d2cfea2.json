@@ -1,0 +1,59 @@
+{
+  "id": "90b45945-d90a-4a13-be22-33a75d2cfea2",
+  "type": "pdf",
+  "path": "D:\\SAYAN\\WEB DEVELOPMENT\\StudyAgent\\documents\\new_file.pdf",
+  "doc_name": "new_file.pdf",
+  "page_count": 10,
+  "pages": [
+    {
+      "page": 1,
+      "content": "SmartHome HubSmartHome Hub, Inc\nAlex JohnsonPrepared By\nhttps://sample-files.com +123-456-7890Product Launch Strategy",
+      "summary": "SmartHome HubSmartHome Hub, Inc\nAlex JohnsonPrepared By\nhttps://sample-files.com +123-456-7890Product Launch Strategy"
+    },
+    {
+      "page": 2,
+      "content": "Table of Contents\n1. Executive Summary\n2. Introduction\n3. Product Overview\n4. Market Analysis\n5. Competitor Analysis\n6. Marketing Strategy\n7. Sales Projections\n8. Launch Timeline",
+      "summary": "Market Analysis\n5. Competitor Analysis\n6. Executive Summary\n2."
+    },
+    {
+      "page": 3,
+      "content": "Executive Summary\nLorem ipsum dolor sit amet, consectetur adipiscing\nelit. Cras facilisis consectetur tempor. Aenean aliquet\nsapien ex, pharetra consequat arcu tristique vitae.\nNam quis porta ex. Donec porttitor at sem nec\nsollicitudin. Ut vel commodo tortor, sagittis egestas\nnisl. Donec quam mauris, tristique non tempus vitae,\nornare sed mauris. Etiam blandit tempor metus, at\nvehicula nisi. Maecenas suscipit vulputate varius.\nNam lacinia leo felis, quis hendrerit tortor dignissim\nquis. Morbi egestas rhoncus lectus. Ut nec mauris\ndiam. Aenean gravida, est non ornare interdum, libero\nnibh accumsan nibh, sed commodo erat orci ac tellus.\nAenean iaculis urna nec metus sodales consectetur.\nQuisque lacinia dui vitae purus condimentum dapibus.\nPellentesque habitant morbi tristique senectus et\nnetus et malesuada fames ac turpis egestas.",
+      "summary": "Aenean gravida, est non ornare interdum, libero\nnibh accumsan nibh, sed commodo erat orci ac tellus.\n Aenean iaculis urna nec metus sodales consectetur.\n Donec quam mauris, tristique non tempus vitae,\nornare sed mauris."
+    },
+    {
+      "page": 4,
+      "content": " Introduction\nNam quis porta ex. Donec porttitor at sem nec\nsollicitudin. Ut vel commodo tortor, sagittis egestas\nnisl. Donec quam mauris, tristique non tempus vitae,\nornare sed mauris. Etiam blandit tempor metus, at\nvehicula nisi. Maecenas suscipit vulputate varius.",
+      "summary": "Donec quam mauris, tristique non tempus vitae,\nornare sed mauris. Ut vel commodo tortor, sagittis egestas\nnisl. Maecenas suscipit vulputate varius."
+    },
+    {
+      "page": 5,
+      "content": "Product Overview\nNam quis porta ex. Donec porttitor at sem nec\nsollicitudin. Ut vel commodo tortor, sagittis egestas\nnisl. Donec quam mauris, tristique non tempus vitae,\nornare sed mauris. Etiam blandit tempor metus, at\nvehicula nisi. Maecenas suscipit vulputate varius.\nInteger et justo velus.\nUt in ipsum ac risus.\nMaecenas iaculis.\nUt nec mauris vel.\nTellus accumsan.Key Features\nInteger et justo velus.\nUt in ipsum ac risus.\nMaecenas iaculis.\nUt nec mauris vel.\nTellus accumsan.Key Features",
+      "summary": "Donec quam mauris, tristique non tempus vitae,\nornare sed mauris. Integer et justo velus.\n Maecenas suscipit vulputate varius.\n"
+    },
+    {
+      "page": 6,
+      "content": "Market Analysis\nNam quis porta ex. Donec porttitor at sem nec\nsollicitudin. Ut vel commodo tortor, sagittis egestas\nnisl. Donec quam mauris, tristique non tempus vitae,\nornare sed mauris. Etiam blandit tempor metus, at\nvehicula nisi. Maecenas suscipit vulputate varius.\nCurrent market share Projected sales for the\nfirst three years",
+      "summary": "Donec quam mauris, tristique non tempus vitae,\nornare sed mauris. Current market share Projected sales for the\nfirst three years Ut vel commodo tortor, sagittis egestas\nnisl."
+    },
+    {
+      "page": 7,
+      "content": "Competitor Analysis\nVivamus orci mi, venenatis quis diam sed, scelerisque\naccumsan lacus. Curabitur eu dictum neque, sit amet\nrutrum velit. In aliquam orci a ante hendrerit, vel\negestas ligula interdum. Ut pulvinar ornare dapibus.\nSuspendisse nec cursus libero, at hendrerit eros.",
+      "summary": "Curabitur eu dictum neque, sit amet\nrutrum velit. Suspendisse nec cursus libero, at hendrerit eros. Competitor Analysis\nVivamus orci mi, venenatis quis diam sed, scelerisque\naccumsan lacus."
+    },
+    {
+      "page": 8,
+      "content": "Marketing Strategy\nTristique non tempus vitae, ornare sed mauris. Etiam\nblandit tempor metus, at vehicula nisi. Maecenas\nsuscipit vulputate varius.\nInteger et justo velus.\nUt in ipsum ac risus.\nMaecenas iaculis.\nUt nec mauris vel.\nTellus accumsan.1st Strategy\nInteger et justo velus.\nUt in ipsum ac risus.\nMaecenas iaculis.\nUt nec mauris vel.\nTellus accumsan. 2nd Strategy",
+      "summary": "Integer et justo velus.\n Ut in ipsum ac risus.\n Ut in ipsum ac risus.\n"
+    },
+    {
+      "page": 9,
+      "content": "Sales Projections\nTristique non tempus vitae, ornare sed mauris. Etiam\nblandit tempor metus, at vehicula nisi. Maecenas\nsuscipit vulputate varius.\nMetric Sales\nMarket Size $50 Billion\nUser Satisfaction 85%\nGrowth Rate 10%Series 1 Series 2\nItem 1 Item 2 Item 305101520",
+      "summary": "Sales Projections\nTristique non tempus vitae, ornare sed mauris. Etiam\nblandit tempor metus, at vehicula nisi. Maecenas\nsuscipit vulputate varius.\n"
+    },
+    {
+      "page": 10,
+      "content": "Launch Timeline\nVivamus ac nunc vitae nulla molestie sodales. Proin sit\namet rhoncus lacus. Cras non erat imperdiet sapien\nporttitor aliquam nec ut velit.",
+      "summary": "Cras non erat imperdiet sapien\nporttitor aliquam nec ut velit. Launch Timeline\nVivamus ac nunc vitae nulla molestie sodales. Proin sit\namet rhoncus lacus."
+    }
+  ]
+}

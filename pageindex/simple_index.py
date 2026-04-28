@@ -1,8 +1,24 @@
 import PyPDF2
 import os
+import spacy
+import pytextrank
+from PIL import Image
+import pytesseract
+import fitz
+
+nlp = spacy.load("en_core_web_sm")
+nlp.add_pipe("textrank")
 
 def simple_index(pdf_path):
     pages = []
+
+    # doc = fitz.open(pdf_path)
+    #
+    # for page in doc:
+    #     pix = page.get_pixmap()
+    #     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    #     text = pytesseract.image_to_string(img)
+    #     print(text)
 
     with open(pdf_path, "rb") as f:
         reader = PyPDF2.PdfReader(f)
@@ -10,9 +26,13 @@ def simple_index(pdf_path):
         for i, page in enumerate(reader.pages, 1):
             text = page.extract_text() or ""
 
+            doc = nlp(text)
+            summary = " ".join([sent.text for sent in doc._.textrank.summary(limit_phrases=5, limit_sentences=3)])
+
             pages.append({
                 "page": i,
-                "content": text
+                "content": text,
+                "summary": summary
             })
 
     return {
