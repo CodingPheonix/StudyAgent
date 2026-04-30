@@ -8,7 +8,7 @@ from aiohttp.web_response import json_response
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from pageindex import PageIndexClient
+from pageindex.client import PageIndexClient
 
 app = FastAPI()
 
@@ -90,3 +90,4 @@ def download_pdf(params: PdfUrlInput):
     print("Deleted")
 
     return structure
+

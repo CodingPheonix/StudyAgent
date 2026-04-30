@@ -1,5 +1,6 @@
 fastapi[standard]
 langchain
+langgraph
 langchain-openrouter
 PyPDF2
 litellm
@@ -8,3 +9,4 @@ gdown
 spacy
 pytextrank
 pytesseract
+ipython

@@ -7,9 +7,8 @@ from pathlib import Path
 
 import PyPDF2
 
-from .page_index import page_index
 from .simple_index import simple_index
-from .page_index_md import md_to_tree
+# from .page_index_md import md_to_tree
 from .retrieve import get_document, get_document_structure, get_page_content
 from .utils import ConfigLoader, remove_fields
 
