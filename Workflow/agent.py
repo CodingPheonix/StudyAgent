@@ -1,5 +1,10 @@
 import json
 import os
+from dotenv import load_dotenv
+from pydantic import BaseModel
+from typing import Literal
+
+load_dotenv()
 
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage
@@ -7,40 +12,47 @@ from langchain_openrouter import ChatOpenRouter
 
 os.environ["OPENROUTER_API_KEY"] = os.getenv("OPENROUTER_API_KEY")
 
-model = ChatOpenRouter("nvidia/nemotron-3-super-120b-a12b:free")
-
-EXTRACTION_PROMPT = (
-    "You are an extraction agent. "
-    "You extract required data from a context and return in json format. "
-    "You are given a user input. "
-    "Extract the operation: task that user want to perform, "
-    "Extract the query: Question of the user or Problem of the user. "
+model = ChatOpenRouter(
+    model="openai/gpt-4o-mini",
+    temperature=0.3
 )
 
-class extractionAgentResponse:
-    operation: str
-    query: str
 
-extractionAgent = create_agent(
-    model,
-    system_prompt=EXTRACTION_PROMPT,
-    response_format=extractionAgentResponse,
-)
+# model = ChatOpenRouter(
+#     model="nvidia/nemotron-3-super-120b-a12b:free",
+#     temperature=0.3
+# )
+
+# EXTRACTION_PROMPT = (
+#     "You are an extraction agent. "
+#     "You extract required data from a context and return in json format. "
+#     "You are given a user input. "
+#     "Extract the operation: task that user want to perform, "
+#     "Extract the query: Question of the user or Problem of the user. "
+# )
+#
+# class extractionAgentResponse(BaseModel):
+#     operation: Literal["summary", "quiz", "conversation"]
+#     query: str
+#
+# extractionAgent = create_agent(
+#     model,
+#     system_prompt=EXTRACTION_PROMPT,
+#     response_format=extractionAgentResponse,
+# )
 
 def extraction(state: dict):
-    """
-    Extract data from the user's message.
-        operation: string
-        query: string
-    """
-
-    response = extractionAgent.invoke(state["messages"][-1])
     return {
-        "operation": response["operation"],
-        "query": response["query"],
+        "operation": state["operation"],
+        "query": state["query"]
     }
 
+
 def retrieval(state: dict):
+    print("operation:", state.get("operation"))
+    print("query:", state.get("query"))
+    print("context:", state.get("context"))
+
     temporary_context = '''
             The Lion’s Lesson
             In a sun-dappled forest, a mighty lion ruled with a roar that made leaves tremble. Every creature feared him, for he hunted not just when hungry, but whenever his pride demanded it.
@@ -55,8 +67,11 @@ def retrieval(state: dict):
         '''
 
     return {
-        "context": temporary_context,
+        "context": {
+            "context": temporary_context
+        }
     }
+
 
 SUMMARY_PROMPT = (
     "You are an excellent Summarization agent. "
@@ -68,14 +83,17 @@ SUMMARY_PROMPT = (
     "RULE 4: Summary should be complete, compact and integrated. "
 )
 
-class summaryAgentResponse:
+
+class summaryAgentResponse(BaseModel):
     summary: str
+
 
 summaryAgent = create_agent(
     model,
     system_prompt=SUMMARY_PROMPT,
     response_format=summaryAgentResponse,
 )
+
 
 def solveForSummary(state: dict):
     """
@@ -85,8 +103,9 @@ def solveForSummary(state: dict):
     response = summaryAgent.invoke(state["context"])
 
     return {
-        "messages": AIMessage(content=response["summary"])
+        "messages": [AIMessage(content=response["summary"])]
     }
+
 
 QUIZ_PROMPT = (
     "You are a Quiz Generation Agent. "
@@ -102,21 +121,25 @@ QUIZ_PROMPT = (
     "Return strictly in the required structured format."
 )
 
-from typing import List
+from typing import List, Literal
 
-class QuizItem:
+
+class QuizItem(BaseModel):
     question: str
     options: List[str]
     correct_ans: str
 
-class quizAgentResponse:
+
+class quizAgentResponse(BaseModel):
     quiz: List[QuizItem]
+
 
 quizAgent = create_agent(
     model,
     system_prompt=QUIZ_PROMPT,
     response_format=quizAgentResponse,
 )
+
 
 def solveForQuiz(state: dict):
     """
@@ -126,8 +149,9 @@ def solveForQuiz(state: dict):
     response = quizAgent.invoke(state["context"])
 
     return {
-        "messages": AIMessage(content=json.dumps(response["quiz"]))
+        "messages": [AIMessage(content=json.dumps(response["quiz"]))]
     }
+
 
 CONVO_PROMPT = (
     "You are a helpful conversational assistant. "
@@ -136,14 +160,17 @@ CONVO_PROMPT = (
     "Stay relevant to the user's message. "
 )
 
-class convoAgentResponse:
+
+class convoAgentResponse(BaseModel):
     reply: str
+
 
 conversationAgent = create_agent(
     model,
     system_prompt=CONVO_PROMPT,
     response_format=convoAgentResponse,
 )
+
 
 def solveForConversation(state: dict):
     """
@@ -155,5 +182,5 @@ def solveForConversation(state: dict):
     response = conversationAgent.invoke(last_message.content)
 
     return {
-        "messages": AIMessage(content=response["reply"])
+        "messages": [AIMessage(content=response["reply"])]
     }

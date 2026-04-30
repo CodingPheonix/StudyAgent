@@ -10,3 +10,5 @@ spacy
 pytextrank
 pytesseract
 ipython
+python-dotenv
+typing-extensions

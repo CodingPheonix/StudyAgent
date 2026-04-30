@@ -6,8 +6,10 @@ import gdown
 import requests
 from aiohttp.web_response import json_response
 from fastapi import FastAPI
+from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 
+from Workflow.graph import agent
 from pageindex.client import PageIndexClient
 
 app = FastAPI()
@@ -91,3 +93,15 @@ def download_pdf(params: PdfUrlInput):
 
     return structure
 
+class AgentInput(BaseModel):
+    query: str
+    operation: str
+
+@app.post("/query_agent")
+def query_agent(params: AgentInput):
+    response = agent.invoke({
+        "operation": params.operation,
+        "query": params.query,
+        "messages": [HumanMessage(content=params.query)]
+    })
+    return response

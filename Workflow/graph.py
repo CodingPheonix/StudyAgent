@@ -3,6 +3,7 @@ from typing import Literal
 
 from langgraph.constants import END, START
 from langgraph.graph import StateGraph
+from langgraph.types import RetryPolicy
 
 from .agent import extraction, retrieval, solveForQuiz, solveForSummary, solveForConversation
 from .state import MessagesState
@@ -24,11 +25,11 @@ def choosePath(state: MessagesState) -> Literal["solveForSummary", "solveForQuiz
         return END
 
 # Add nodes
-agent_builder.add_node("extraction", extraction)
-agent_builder.add_node("retrieval", retrieval)
-agent_builder.add_node("solveForSummary", solveForSummary)
-agent_builder.add_node("solveForQuiz", solveForQuiz)
-agent_builder.add_node("solveForConversation", solveForConversation)
+agent_builder.add_node("extraction", extraction, retry_policy=RetryPolicy(max_attempts=1, initial_interval=1.0))
+agent_builder.add_node("retrieval", retrieval, retry_policy=RetryPolicy(max_attempts=1, initial_interval=1.0))
+agent_builder.add_node("solveForSummary", solveForSummary, retry_policy=RetryPolicy(max_attempts=1, initial_interval=1.0))
+agent_builder.add_node("solveForQuiz", solveForQuiz, retry_policy=RetryPolicy(max_attempts=1, initial_interval=1.0))
+agent_builder.add_node("solveForConversation", solveForConversation, retry_policy=RetryPolicy(max_attempts=1, initial_interval=1.0))
 
 # Add edges to connect nodes
 agent_builder.add_edge(START, "extraction")
@@ -44,7 +45,3 @@ agent_builder.add_edge("solveForConversation", END)
 
 # Compile the agent
 agent = agent_builder.compile()
-
-# Show the agent
-from IPython.display import Image, display
-display(Image(agent.get_graph(xray=True).draw_mermaid_png()))

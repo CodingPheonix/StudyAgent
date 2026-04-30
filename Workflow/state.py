@@ -1,10 +1,9 @@
 from langchain.messages import AnyMessage
 from typing_extensions import TypedDict, Annotated
-import operator
-
+from langgraph.graph.message import add_messages
 
 class MessagesState(TypedDict):
-    messages: Annotated[list[AnyMessage], operator.add]
+    messages: Annotated[list[AnyMessage], add_messages]
     operation: str
     query: str
-    context: Annotated[list[str], operator.add]
+    context: str
