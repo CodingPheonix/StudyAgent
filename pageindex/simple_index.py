@@ -9,6 +9,11 @@ import fitz
 nlp = spacy.load("en_core_web_sm")
 nlp.add_pipe("textrank")
 
+
+def clean_pdf_text(text: str) -> str:
+    return " ".join((text or "").split())
+
+
 def simple_index(pdf_path):
     pages = []
 
@@ -24,10 +29,12 @@ def simple_index(pdf_path):
         reader = PyPDF2.PdfReader(f)
 
         for i, page in enumerate(reader.pages, 1):
-            text = page.extract_text() or ""
+            text = clean_pdf_text(page.extract_text() or "")
 
             doc = nlp(text)
-            summary = " ".join([sent.text for sent in doc._.textrank.summary(limit_phrases=5, limit_sentences=3)])
+            summary = clean_pdf_text(" ".join([
+                sent.text for sent in doc._.textrank.summary(limit_phrases=5, limit_sentences=3)
+            ]))
 
             pages.append({
                 "page": i,

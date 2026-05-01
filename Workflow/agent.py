@@ -1,56 +1,114 @@
 import json
 import os
+from pathlib import Path
+from typing import List
+
 from dotenv import load_dotenv
+from langchain.agents import create_agent
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_openrouter import ChatOpenRouter
 from pydantic import BaseModel
-from typing import Literal
+
+from pageindex.client import PageIndexClient
+from pageindex.retrieve import smart_get_content
 
 load_dotenv()
 
-from langchain.agents import create_agent
-from langchain_core.messages import AIMessage
-from langchain_openrouter import ChatOpenRouter
+BASE_DIR = Path(__file__).resolve().parent.parent
+WORKSPACE = BASE_DIR / "workspace"
 
-os.environ["OPENROUTER_API_KEY"] = os.getenv("OPENROUTER_API_KEY")
+openrouter_api_key = os.getenv("OPEN_ROUTER_API_KEY")
 
 model = ChatOpenRouter(
     model="openai/gpt-4o-mini",
-    temperature=0.3
+    temperature=0.3,
 )
 
 
-# model = ChatOpenRouter(
-#     model="nvidia/nemotron-3-super-120b-a12b:free",
-#     temperature=0.3
-# )
-
 def extraction(state: dict):
     return {
+        "doc_id": state.get("doc_id"),
         "operation": state["operation"],
-        "query": state["query"]
+        "query": state["query"],
     }
+
+
+def _format_retrieved_pages(raw_content: str) -> str:
+    data = json.loads(raw_content)
+    if isinstance(data, dict) and data.get("error"):
+        return data["error"]
+    if not isinstance(data, list):
+        return str(data)
+
+    chunks = []
+    for page in data:
+        content = " ".join(str(page.get("content", "")).split())
+        chunks.append(f"Page {page.get('page')}:\n{content}")
+    return "\n\n".join(chunks)
+
+
+def _context_text(state: dict) -> str:
+    context = state.get("context", "")
+    if isinstance(context, dict):
+        return context.get("context", "")
+    return str(context)
+
+
+def _invoke_with_context(agent, context: str):
+    return agent.invoke({
+        "messages": [HumanMessage(content=f"Context:\n{context}")]
+    })
+
+
+def _get_structured_field(response: dict, field: str):
+    if field in response:
+        return response[field]
+
+    structured = response.get("structured_response")
+    if isinstance(structured, dict):
+        return structured.get(field)
+    if isinstance(structured, BaseModel):
+        return getattr(structured, field, None)
+
+    return None
 
 
 def retrieval(state: dict):
     print("operation:", state.get("operation"))
     print("query:", state.get("query"))
-    print("context:", state.get("context"))
+    print("doc_id:", state.get("doc_id"))
 
-    temporary_context = '''
-            The Lion’s Lesson
-            In a sun-dappled forest, a mighty lion ruled with a roar that made leaves tremble. Every creature feared him, for he hunted not just when hungry, but whenever his pride demanded it.
-            One morning, the animals gathered in secret. They decided to send one animal each day to the lion, hoping to spare the rest. When it was the rabbit’s turn, he did not hurry. He hopped slowly, stopping to nibble grass and watch clouds drift lazily.
-            By the time he reached the lion’s den, the sun was already leaning west. The lion’s golden eyes blazed. “Why are you late?” he growled.
-            The rabbit bowed low. “On my way, I met another lion,” he said softly. “He claimed to be the true king of this forest. He even threatened to eat me before you could.”
-            The lion’s pride flared hotter than his hunger. “Show me this imposter!”
-            The rabbit led him to a deep, still pond. “He lives here,” the rabbit whispered.
-            The lion peered into the water and saw a fierce face staring back. He roared, and the reflection roared too. Enraged, he leapt into the pond to fight his rival—only to sink beneath the water, never to return.
-            The rabbit hopped away, his heart pounding with both fear and triumph. That evening, the forest was quieter than it had been in years.
-            And from that day on, the animals learned that courage and wit could outmatch even the sharpest claws.
-        '''
+    if state.get("operation") == "conversation" and not state.get("doc_id"):
+        return {"context": {"context": state.get("query", "")}}
+
+    doc_id = state.get("doc_id")
+    if not doc_id:
+        return {"context": {"context": "No document selected. Upload a PDF first and pass its doc_id."}}
+
+    client = PageIndexClient(workspace=WORKSPACE)
+    if doc_id not in client.documents:
+        return {"context": {"context": f"Document not found for doc_id: {doc_id}"}}
+
+    client._ensure_doc_loaded(doc_id)
+    doc = client.documents.get(doc_id, {})
+
+    if state.get("operation") == "summary":
+        summary_lines = []
+        for page in doc.get("pages", []):
+            summary = page.get("summary") or page.get("content", "")
+            summary_lines.append(f"Page {page.get('page')}: {' '.join(str(summary).split())}")
+        return {"context": {"context": "\n\n".join(summary_lines)}}
+
+    raw_content = smart_get_content(client.documents, doc_id, state.get("query", ""))
+
+    if "No relevant content found" in raw_content:
+        page_count = doc.get("page_count") or len(doc.get("pages", []))
+        fallback_pages = ",".join(str(page) for page in range(1, min(page_count, 5) + 1))
+        raw_content = client.get_page_content(doc_id, fallback_pages)
 
     return {
         "context": {
-            "context": temporary_context
+            "context": _format_retrieved_pages(raw_content),
         }
     }
 
@@ -82,11 +140,11 @@ summaryAgent = create_agent(
 
 
 def solveForSummary(state: dict):
-    """
-    Creates a summary of given text
-    """
+    response = _invoke_with_context(summaryAgent, _context_text(state))
+    summary = _get_structured_field(response, "summary")
 
-    response = summaryAgent.invoke(state["context"])
+    if not summary:
+        summary = "Unable to generate summary from the retrieved context."
 
     content = response["messages"][-1].content  # last message = actual output
     # summary = json.loads(content)["summary"]
@@ -94,7 +152,7 @@ def solveForSummary(state: dict):
     # print("response is : ", content)
 
     return {
-        "messages": [AIMessage(content=content)]
+        "messages": [AIMessage(content=summary)],
     }
 
 
@@ -102,17 +160,13 @@ QUIZ_PROMPT = (
     "You are a Quiz Generation Agent. "
     "You are given a context. "
     "Your task is to generate a quiz based on the context. "
-
     "RULE 1: Generate 5 questions. "
     "RULE 2: Each question must have exactly 4 options. "
     "RULE 3: Only one option should be correct. "
     "RULE 4: Keep questions clear and based strictly on the context. "
     "RULE 5: Do not add explanations. "
-
     "Return strictly in the required structured format."
 )
-
-from typing import List, Literal
 
 
 class QuizItem(BaseModel):
@@ -133,15 +187,53 @@ quizAgent = create_agent(
 
 
 def solveForQuiz(state: dict):
-    """
-    Generates quiz from given context
-    """
+    response = _invoke_with_context(quizAgent, _context_text(state))
+    quiz = _get_structured_field(response, "quiz")
 
-    response = quizAgent.invoke(state["context"])
-    answer = response["messages"][-1].content
+    if quiz is None:
+        quiz = []
 
     return {
-        "messages": [AIMessage(content=answer)]
+        "messages": [AIMessage(content=json.dumps(quiz, default=lambda item: item.model_dump()))],
+    }
+
+
+FLASH_PROMPT = (
+    "You are an intelligent flashcard generation agent. "
+    "You are given a context and optionally a user-given topic. "
+    "Pick distinct, meaningful, separate points within the boundary of the context and topic if provided. "
+    "Generate one concise flashcard line for each point while preserving the original meaning. "
+    "Each flashcard line should be around 20-25 words, descriptive, and understandable. "
+    "Return strictly in the required structured format."
+)
+
+
+class flashAgentResponse(BaseModel):
+    flash: List[str]
+
+
+flashAgent = create_agent(
+    model,
+    system_prompt=FLASH_PROMPT,
+    response_format=flashAgentResponse,
+)
+
+
+def solveForFlashCards(state: dict):
+    context = _context_text(state)
+    topic = state.get("query", "")
+    response = flashAgent.invoke({
+        "messages": [
+            HumanMessage(content=f"Topic: {topic}\n\nContext:\n{context}")
+        ]
+    })
+    flashcards = _get_structured_field(response, "flash")
+
+    if flashcards is None:
+        flashcards = []
+
+    return {
+        "messages": [AIMessage(content=json.dumps(flashcards))],
     }
 
 
@@ -165,17 +257,15 @@ conversationAgent = create_agent(
 
 
 def solveForConversation(state: dict):
-    """
-    Handles normal conversation
-    """
-
     last_message = state["messages"][-1]
-
     response = conversationAgent.invoke(last_message.content)
-    answer = response["messages"][-1].content
+    reply = _get_structured_field(response, "reply")
+
+    if not reply:
+        reply = "Unable to generate a response."
 
     return {
-        "messages": [AIMessage(content=answer)]
+        "messages": [AIMessage(content=reply)],
     }
 
 FLASH_PROMPT = (
