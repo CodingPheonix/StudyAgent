@@ -91,17 +91,30 @@ def download_pdf(params: PdfUrlInput):
         file_path.unlink()
     print("Deleted")
 
-    return structure
+    return {
+        "doc_id": doc_id,
+        **structure,
+    }
 
 class AgentInput(BaseModel):
+    doc_id: str | None = None
     query: str
     operation: str
 
 @app.post("/query_agent")
 def query_agent(params: AgentInput):
     response = agent.invoke({
+        "doc_id": params.doc_id,
         "operation": params.operation,
         "query": params.query,
         "messages": [HumanMessage(content=params.query)]
     })
-    return response
+    messages = response.get("messages", [])
+    answer = messages[-1].content if messages else ""
+
+    return {
+        "doc_id": params.doc_id,
+        "operation": params.operation,
+        "query": params.query,
+        "response": answer,
+    }

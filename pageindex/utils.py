@@ -23,9 +23,10 @@ from types import SimpleNamespace as config
 # if not os.getenv("OPENAI_API_KEY") and os.getenv("CHATGPT_API_KEY"):
 #     os.environ["OPENAI_API_KEY"] = os.getenv("CHATGPT_API_KEY")
 
-# fallback: use OPEN_ROUTER_API_KEY if OPENAI_API_KEY not set
-if not os.getenv("OPENAI_API_KEY") and os.getenv("OPEN_ROUTER_API_KEY"):
-    os.environ["OPENAI_API_KEY"] = os.getenv("OPEN_ROUTER_API_KEY")
+# fallback: use OpenRouter if OPENAI_API_KEY is not set
+openrouter_api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPEN_ROUTER_API_KEY")
+if not os.getenv("OPENAI_API_KEY") and openrouter_api_key:
+    os.environ["OPENAI_API_KEY"] = openrouter_api_key
 
 litellm.drop_params = True
 
