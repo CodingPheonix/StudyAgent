@@ -1,8 +1,8 @@
-﻿{
-    "4c263d86-73d3-424d-9e45-5265560385f6":  {
-                                                 "type":  "pdf",
-                                                 "doc_name":  "Deep Learning Vision Foundations_.pdf",
-                                                 "doc_description":  "",
-                                                 "page_count":  40
-                                             }
+{
+  "4c263d86-73d3-424d-9e45-5265560385f6": {
+    "type": "pdf",
+    "doc_name": "Deep Learning Vision Foundations_.pdf",
+    "doc_description": "",
+    "page_count": 40
+  }
 }

@@ -24,7 +24,7 @@ from types import SimpleNamespace as config
 #     os.environ["OPENAI_API_KEY"] = os.getenv("CHATGPT_API_KEY")
 
 # fallback: use OpenRouter if OPENAI_API_KEY is not set
-openrouter_api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPEN_ROUTER_API_KEY")
+openrouter_api_key = os.getenv("OPEN_ROUTER_API_KEY")
 if not os.getenv("OPENAI_API_KEY") and openrouter_api_key:
     os.environ["OPENAI_API_KEY"] = openrouter_api_key
 
@@ -136,6 +136,7 @@ def extract_json(content):
         logging.error(f"Unexpected error while extracting JSON: {e}")
         return {}
 
+_DISABLED_TREE_NODE_HELPERS = r'''
 def write_node_id(data, node_id=0):
     if isinstance(data, dict):
         data['node_id'] = str(node_id).zfill(4)
@@ -223,6 +224,7 @@ def is_leaf_node(data, node_id):
 
 def get_last_node(structure):
     return structure[-1]
+'''
 
 
 def extract_text_from_pdf(pdf_path):
@@ -328,6 +330,7 @@ class JsonLogger:
 
 
 
+_DISABLED_TREE_BUILDERS = r'''
 def list_to_tree(data):
     def get_parent_structure(structure):
         """Helper function to get the parent structure code"""
@@ -388,6 +391,7 @@ def add_preface_if_needed(data):
         }
         data.insert(0, preface_node)
     return data
+'''
 
 
 
@@ -437,6 +441,7 @@ def get_number_of_pages(pdf_path):
 
 
 
+_DISABLED_TREE_POST_PROCESSING = r'''
 def post_processing(structure, end_physical_index):
     # First convert page_number to start_index in flat list
     for i, item in enumerate(structure):
@@ -469,6 +474,7 @@ def clean_structure_post(data):
         for section in data:
             clean_structure_post(section)
     return data
+'''
 
 def remove_fields(data, fields=['text']):
     if isinstance(data, dict):
@@ -478,11 +484,13 @@ def remove_fields(data, fields=['text']):
         return [remove_fields(item, fields) for item in data]
     return data
 
+_DISABLED_TREE_PRINTERS = r'''
 def print_toc(tree, indent=0):
     for node in tree:
         print('  ' * indent + node['title'])
         if node.get('nodes'):
             print_toc(node['nodes'], indent + 1)
+'''
 
 def print_json(data, max_len=40, indent=2):
     def simplify_data(obj):
@@ -499,6 +507,7 @@ def print_json(data, max_len=40, indent=2):
     print(json.dumps(simplified, indent=indent, ensure_ascii=False))
 
 
+_DISABLED_TREE_CONTENT_HELPERS = r'''
 def remove_structure_text(data):
     if isinstance(data, dict):
         data.pop('text', None)
@@ -656,6 +665,7 @@ def format_structure(structure, order=None):
     elif isinstance(structure, list):
         structure = [format_structure(item, order) for item in structure]
     return structure
+'''
 
 
 class ConfigLoader:
@@ -691,6 +701,7 @@ class ConfigLoader:
         merged = {**self._default_dict, **user_dict}
         return config(**merged)
 
+_DISABLED_TREE_DEBUG_HELPERS = r'''
 def create_node_mapping(tree):
     """Create a flat dict mapping node_id to node for quick lookup."""
     mapping = {}
@@ -714,4 +725,5 @@ def print_tree(tree, indent=0):
 def print_wrapped(text, width=100):
     for line in text.splitlines():
         print(textwrap.fill(line, width=width))
+'''
 
