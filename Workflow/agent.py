@@ -17,9 +17,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 WORKSPACE = BASE_DIR / "workspace"
 
-openrouter_api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPEN_ROUTER_API_KEY")
-if openrouter_api_key:
-    os.environ["OPENROUTER_API_KEY"] = openrouter_api_key
+openrouter_api_key = os.getenv("OPEN_ROUTER_API_KEY")
 
 model = ChatOpenRouter(
     model="openai/gpt-4o-mini",
