@@ -112,6 +112,10 @@ def retrieval(state: dict):
         }
     }
 
+    # return {
+    #     "context": temporary_context
+    # }
+
 
 SUMMARY_PROMPT = (
     "You are an excellent Summarization agent. "
@@ -141,6 +145,11 @@ def solveForSummary(state: dict):
 
     if not summary:
         summary = "Unable to generate summary from the retrieved context."
+
+    content = response["messages"][-1].content  # last message = actual output
+    # summary = json.loads(content)["summary"]
+
+    # print("response is : ", content)
 
     return {
         "messages": [AIMessage(content=summary)],
@@ -257,4 +266,37 @@ def solveForConversation(state: dict):
 
     return {
         "messages": [AIMessage(content=reply)],
+    }
+
+FLASH_PROMPT = (
+    "You are an intelligent agent. "
+    "You are given a context and optionally a user given topic. "
+    "Your task is to pick up distinct, meaningful, separate points within the boundary of the context and the provided topic (if any). "
+    "Only after that, generate a single line context of each point, preserving the meaning and context relevance to the original text. "
+    "The context lines should be around 20-25 words in length, descriptive and understandable. "
+    "Return the total data as a single list of strings. "
+)
+
+class flashAgentResponse(BaseModel):
+    flash: List[str]
+
+flashAgent = create_agent(
+    model,
+    system_prompt=FLASH_PROMPT,
+    response_format=flashAgentResponse,
+)
+
+def solveForFlashCards(state: dict):
+    """
+    Creates a list of flash card responses
+    """
+
+    response = flashAgent.invoke({
+        "context": state["context"],
+        "given_topic": state['query']
+    })
+    answer = response["messages"][-1].content
+
+    return {
+        "messages": [AIMessage(content=answer)]
     }
