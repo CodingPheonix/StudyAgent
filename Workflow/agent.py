@@ -23,24 +23,6 @@ model = ChatOpenRouter(
 #     temperature=0.3
 # )
 
-# EXTRACTION_PROMPT = (
-#     "You are an extraction agent. "
-#     "You extract required data from a context and return in json format. "
-#     "You are given a user input. "
-#     "Extract the operation: task that user want to perform, "
-#     "Extract the query: Question of the user or Problem of the user. "
-# )
-#
-# class extractionAgentResponse(BaseModel):
-#     operation: Literal["summary", "quiz", "conversation"]
-#     query: str
-#
-# extractionAgent = create_agent(
-#     model,
-#     system_prompt=EXTRACTION_PROMPT,
-#     response_format=extractionAgentResponse,
-# )
-
 def extraction(state: dict):
     return {
         "operation": state["operation"],
@@ -72,6 +54,10 @@ def retrieval(state: dict):
         }
     }
 
+    # return {
+    #     "context": temporary_context
+    # }
+
 
 SUMMARY_PROMPT = (
     "You are an excellent Summarization agent. "
@@ -102,8 +88,13 @@ def solveForSummary(state: dict):
 
     response = summaryAgent.invoke(state["context"])
 
+    content = response["messages"][-1].content  # last message = actual output
+    # summary = json.loads(content)["summary"]
+
+    # print("response is : ", content)
+
     return {
-        "messages": [AIMessage(content=response["summary"])]
+        "messages": [AIMessage(content=content)]
     }
 
 
@@ -147,9 +138,10 @@ def solveForQuiz(state: dict):
     """
 
     response = quizAgent.invoke(state["context"])
+    answer = response["messages"][-1].content
 
     return {
-        "messages": [AIMessage(content=json.dumps(response["quiz"]))]
+        "messages": [AIMessage(content=answer)]
     }
 
 
@@ -180,7 +172,41 @@ def solveForConversation(state: dict):
     last_message = state["messages"][-1]
 
     response = conversationAgent.invoke(last_message.content)
+    answer = response["messages"][-1].content
 
     return {
-        "messages": [AIMessage(content=response["reply"])]
+        "messages": [AIMessage(content=answer)]
+    }
+
+FLASH_PROMPT = (
+    "You are an intelligent agent. "
+    "You are given a context and optionally a user given topic. "
+    "Your task is to pick up distinct, meaningful, separate points within the boundary of the context and the provided topic (if any). "
+    "Only after that, generate a single line context of each point, preserving the meaning and context relevance to the original text. "
+    "The context lines should be around 20-25 words in length, descriptive and understandable. "
+    "Return the total data as a single list of strings. "
+)
+
+class flashAgentResponse(BaseModel):
+    flash: List[str]
+
+flashAgent = create_agent(
+    model,
+    system_prompt=FLASH_PROMPT,
+    response_format=flashAgentResponse,
+)
+
+def solveForFlashCards(state: dict):
+    """
+    Creates a list of flash card responses
+    """
+
+    response = flashAgent.invoke({
+        "context": state["context"],
+        "given_topic": state['query']
+    })
+    answer = response["messages"][-1].content
+
+    return {
+        "messages": [AIMessage(content=answer)]
     }

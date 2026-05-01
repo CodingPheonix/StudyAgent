@@ -104,4 +104,4 @@ def query_agent(params: AgentInput):
         "query": params.query,
         "messages": [HumanMessage(content=params.query)]
     })
-    return response
+    return response["messages"][-1].content
