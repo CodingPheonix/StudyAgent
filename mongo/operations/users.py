@@ -21,9 +21,13 @@ def register(name: str, email: str, password: str):
         new_user = User(name=name, email=email, password=hashed)
 
         # Insert new User
-        users.insert_one(new_user.model_dump())
+        data = users.insert_one(new_user.model_dump())
 
-        return {"status": 201}
+        return {"status": 201, "data": {
+            "name": name,
+            "email": email,
+            "id": str(data.inserted_id)
+        }}
     else:
         return {"status": 200}
 

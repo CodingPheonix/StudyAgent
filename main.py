@@ -6,6 +6,7 @@ import gdown
 import requests
 from aiohttp.web_response import json_response
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 
@@ -14,6 +15,16 @@ from mongo.operations.users import user_login, register
 from pageindex.client import PageIndexClient
 
 app = FastAPI()
+
+origins = [os.getenv("ORIGIN_URL")]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 PDF_DIR = BASE_DIR / "documents"
@@ -144,6 +155,7 @@ def signup(params: SignUpInput):
         return {
             "message": "User Successfully registered",
             "status": 201,
+            "data": response["data"]
         }
     else:
         return {

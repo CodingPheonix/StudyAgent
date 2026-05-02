@@ -10,6 +10,7 @@ client = MongoClient(uri)
 try:
     database = client.get_database("test")
     users = database.get_collection("users")
+    pdfs = database.get_collection("pdfs")
 
     # client.close()
 

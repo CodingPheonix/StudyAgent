@@ -42,6 +42,7 @@ def simple_index(pdf_path):
                 "summary": summary
             })
 
+
     return {
         "doc_name": os.path.basename(pdf_path),
         "pages": pages
