@@ -1,4 +1,3 @@
-import json
 import os.path
 
 from pathlib import Path
@@ -11,7 +10,7 @@ from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 
 from Workflow.graph import agent
-from mongo.operations.users import register, user_login
+from mongo.operations.users import user_login, register
 from pageindex.client import PageIndexClient
 
 app = FastAPI()
@@ -93,20 +92,34 @@ def download_pdf(params: PdfUrlInput):
         file_path.unlink()
     print("Deleted")
 
-    return structure
+    return {
+        "doc_id": doc_id,
+        **structure,
+    }
 
 class AgentInput(BaseModel):
+    doc_id: str | None = None
     query: str
     operation: str
 
 @app.post("/query_agent")
 def query_agent(params: AgentInput):
     response = agent.invoke({
+        "doc_id": params.doc_id,
         "operation": params.operation,
         "query": params.query,
         "messages": [HumanMessage(content=params.query)]
     })
-    return response["messages"][-1].content
+    messages = response.get("messages", [])
+    answer = messages[-1].content if messages else ""
+
+    return {
+        "doc_id": params.doc_id,
+        "operation": params.operation,
+        "query": params.query,
+        "response": answer,
+    }
+
 
 class SignUpInput(BaseModel):
     name: str
@@ -116,10 +129,10 @@ class SignUpInput(BaseModel):
 @app.post('/signup')
 def signup(params: SignUpInput):
     if not params.name or not params.email or not params.password:
-        return json.dumps({
+        return {
             "message": "Input data not provided",
             "status": 400
-        })
+        }
 
     response = register(
         name=params.name,
@@ -146,10 +159,10 @@ class LoginInput(BaseModel):
 @app.post('/login')
 def login(params: LoginInput):
     if not params.email or not params.password:
-        return json.dumps({
+        return {
             "message": "Input data not provided",
             "status": 404
-        })
+        }
 
     response = user_login(
         email=params.email,

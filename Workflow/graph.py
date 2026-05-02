@@ -10,7 +10,13 @@ from .state import MessagesState
 
 agent_builder = StateGraph(MessagesState)
 
-def choosePath(state: MessagesState) -> Literal["solveForSummary", "solveForQuiz", "solveForConversation", END]:
+def choosePath(state: MessagesState) -> Literal[
+    "solveForSummary",
+    "solveForQuiz",
+    "solveForConversation",
+    "solveForFlashCards",
+    END,
+]:
     """Decide what task to perform"""
 
     operation = state["operation"]
