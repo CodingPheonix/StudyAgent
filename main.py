@@ -1,3 +1,4 @@
+import json
 import os.path
 
 from pathlib import Path
@@ -10,6 +11,7 @@ from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 
 from Workflow.graph import agent
+from mongo.operations.users import register, user_login
 from pageindex.client import PageIndexClient
 
 app = FastAPI()
@@ -105,3 +107,63 @@ def query_agent(params: AgentInput):
         "messages": [HumanMessage(content=params.query)]
     })
     return response["messages"][-1].content
+
+class SignUpInput(BaseModel):
+    name: str
+    email: str
+    password: str
+
+@app.post('/signup')
+def signup(params: SignUpInput):
+    if not params.name or not params.email or not params.password:
+        return json.dumps({
+            "message": "Input data not provided",
+            "status": 400
+        })
+
+    response = register(
+        name=params.name,
+        email=params.email,
+        password=params.password,
+    )
+
+    if response["status"] == 201:
+        return {
+            "message": "User Successfully registered",
+            "status": 201,
+        }
+    else:
+        return {
+            "message": "Username already exists",
+            "status": 200,
+        }
+
+
+class LoginInput(BaseModel):
+    email: str
+    password: str
+
+@app.post('/login')
+def login(params: LoginInput):
+    if not params.email or not params.password:
+        return json.dumps({
+            "message": "Input data not provided",
+            "status": 404
+        })
+
+    response = user_login(
+        email=params.email,
+        password=params.password,
+    )
+
+    if response["status"] == 200:
+        return {
+            "message": "Login Successful",
+            "status": 200,
+            "data": response["data"]
+        }
+    else:
+        return {
+            "message": "User not present. Kindly Sign Up",
+            "status": 404,
+        }
