@@ -2,6 +2,10 @@ fastapi[standard]
 langchain
 langgraph
 langchain-openrouter
+langchain-ollama
+langchain-mongodb
+langchain-text-splitters
+langchain-community
 PyPDF2
 litellm
 PyMuPDF

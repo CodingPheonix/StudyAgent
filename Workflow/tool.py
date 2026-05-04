@@ -1,6 +1,9 @@
-from langchain.tools import tool
+from langchain_core.tools import tool
 
-@tool(response_format="content_and_artifact")
+from Workflow.utils import vector_store
+
+
+@tool()
 def retrieve_context(query: str):
     """Retrieve information to help answer a query."""
     retrieved_docs = vector_store.similarity_search(query, k=2)

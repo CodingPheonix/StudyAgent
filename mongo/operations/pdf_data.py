@@ -1,7 +1,6 @@
 from mongo.init import pdfs
 from mongo.schema import PDFData
 
-
 def insert_pdf(input_pdf_data: PDFData):
     # check for existing pdfs
     existing_pdf = pdfs.find_one({"doc_name": input_pdf_data.doc_name})
