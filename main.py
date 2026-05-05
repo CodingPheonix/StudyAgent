@@ -1,4 +1,5 @@
 import os.path
+import re
 
 from pathlib import Path
 
@@ -7,12 +8,19 @@ import requests
 from aiohttp.web_response import json_response
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage
+from langchain_mongodb import MongoDBAtlasVectorSearch
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pydantic import BaseModel
 
 from Workflow.graph import agent
+from Workflow.utils import embeddings, collection, vector_store
+from mongo.init import client
+# from mongo.init import client2
 from mongo.operations.users import user_login, register
-from pageindex.client import PageIndexClient
 
 app = FastAPI()
 
@@ -79,34 +87,54 @@ def download_pdf(params: PdfUrlInput):
         if not f.read(5).startswith(b"%PDF"):
             raise ValueError("Downloaded file is not a valid PDF")
 
-    client = PageIndexClient(workspace=WORKSPACE)
 
-    print("=" * 60)
-    print("Step 1: Index PDF and view tree structure")
-    print("=" * 60)
-    doc_id = next(
-        (did for did, doc in client.documents.items() if doc.get("doc_name") == file_path.name),
-        None,
+
+    loader = PyPDFLoader(file_path_str)
+    documents = loader.load()
+
+    # full_text = "\n".join([doc.page_content for doc in documents])
+
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=100
     )
-    if doc_id:
-        print(f"\nLoaded cached doc_id: {doc_id}")
-    else:
-        doc_id = client.index(file_path_str)
-        print(f"\nIndexed. doc_id: {doc_id}")
 
-    print("\nDocument Info:")
-    structure = client.get_document_structure(doc_id)
-    print(structure)
+    full_text = " ".join(doc.page_content for doc in documents)
+    full_text = re.sub(r"\s+", " ", full_text)
 
-    # Delete File chunk
-    if file_path.exists():
-        file_path.unlink()
-    print("Deleted")
+    chunks = text_splitter.split_text(full_text)
 
-    return {
-        "doc_id": doc_id,
-        **structure,
-    }
+    docs = [
+        Document(
+            page_content=chunk,
+            metadata={
+                "source": params.filename
+            }
+        )
+        for chunk in chunks
+    ]
+
+    # embeddings = HuggingFaceEmbeddings(
+    #     model_name="sentence-transformers/all-mpnet-base-v2"
+    # )
+
+    existing = collection.find_one({"source": params.filename})
+
+    if existing:
+        return json_response({"message": "Document already exists"})
+
+    document_ids = vector_store.add_documents(documents=docs)
+
+    # DELETE FILE
+    try:
+        if file_path.exists():
+            file_path.unlink()
+    except Exception as e:
+        print(f"Failed to delete file: {e}")
+
+    if len(document_ids) > 0:
+        return {"status": 201, "message": "Created Embeddings successfully!"}
+    return {"status": 500, "message": "Internal server error!"}
 
 class AgentInput(BaseModel):
     doc_id: str | None = None

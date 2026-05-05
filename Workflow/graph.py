@@ -5,7 +5,7 @@ from langgraph.constants import END, START
 from langgraph.graph import StateGraph
 from langgraph.types import RetryPolicy
 
-from .agent import extraction, retrieval, solveForQuiz, solveForSummary, solveForConversation, solveForFlashCards
+from .agent import extraction, solveForQuiz, solveForSummary, solveForConversation, solveForFlashCards, retrieval
 from .state import MessagesState
 
 agent_builder = StateGraph(MessagesState)

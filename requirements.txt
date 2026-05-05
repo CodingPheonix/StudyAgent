@@ -18,3 +18,5 @@ python-dotenv
 typing-extensions
 pymongo
 bcrypt
+pypdf
+sentence-transformers
